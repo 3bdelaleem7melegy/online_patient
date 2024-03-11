@@ -1,6 +1,5 @@
 // ignore_for_file: file_names, prefer_const_constructors
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:online_patient/firestore-data/searchList.dart';
 // import 'package:online_patient/screen/Booking/bookingScreen%20Cardiologist%20.dart';
