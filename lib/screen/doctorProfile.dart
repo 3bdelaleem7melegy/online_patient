@@ -1,0 +1,295 @@
+// ignore_for_file: deprecated_member_use, file_names, library_private_types_in_public_api, prefer_interpolation_to_compose_strings
+
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class DoctorProfile extends StatefulWidget {
+  final String doctor;
+
+   const DoctorProfile({super.key, required this.doctor});
+  @override
+  _DoctorProfileState createState() => _DoctorProfileState();
+}
+
+class _DoctorProfileState extends State<DoctorProfile> {
+  _launchCaller(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .orderBy('name')
+              .startAt([widget.doctor]).endAt(
+                  ['${widget.doctor}\uf8ff']).snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            return NotificationListener<OverscrollIndicatorNotification>(
+              // onNotification: (OverscrollIndicatorNotification overscroll) {
+              //   overscroll.disallowIndicator();
+              //   return;
+              // },
+              child: ListView.builder(
+                itemCount: snapshot.data?.size,
+                itemBuilder: (context, index) {
+                  QueryDocumentSnapshot<Object?>? document =
+                      snapshot.data?.docs[index];
+                  return Container(
+                    margin: const EdgeInsets.only(top: 5),
+                    child: Column(
+                      children: <Widget>[
+                        Container(
+                          alignment: Alignment.centerLeft,
+                          height: 50,
+                          width: MediaQuery.of(context).size.width,
+                          padding: const EdgeInsets.only(left: 5),
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.chevron_left_sharp,
+                              color: Colors.indigo,
+                              size: 30,
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                        CircleAvatar(
+                          backgroundImage: NetworkImage(document!['image']),
+                          //backgroundColor: Colors.lightBlue[100],
+                          radius: 80,
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          document['name'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                          document['type'],
+                          style: const TextStyle(
+                              //fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.black54),
+                        ),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (var i = 0; i < document['rating']; i++)
+                              const Icon(
+                                Icons.star_rounded,
+                                color: Colors.indigoAccent,
+                                size: 30,
+                              ),
+                            if (5 - document['rating'] > 0)
+                              for (var i = 0; i < 5 - document['rating']; i++)
+                                const Icon(
+                                  Icons.star_rounded,
+                                  color: Colors.black12,
+                                  size: 30,
+                                ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 14,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.only(left: 22, right: 22),
+                          alignment: Alignment.center,
+                          child: Text(
+                            document['specification'],
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Container(
+                          width: MediaQuery.of(context).size.width,
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(
+                                width: 15,
+                              ),
+                              const Icon(Icons.place_outlined),
+                              const SizedBox(
+                                width: 20,
+                              ),
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width / 1.4,
+                                child: Text(
+                                  document['address'],
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: MediaQuery.of(context).size.height / 12,
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            children: [
+                              const SizedBox(
+                                width: 15,
+                              ),
+                              const Icon(Icons.phone),
+                              const SizedBox(
+                                width: 11,
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    _launchCaller("tel:" + document['phone']),
+                                child: Text(
+                                  document['phone'].toString(),
+                                  style: const TextStyle(
+                                      fontSize: 16, color: Colors.blue),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 0,
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          child: const Row(
+                            children: [
+                              SizedBox(
+                                width: 15,
+                              ),
+                              Icon(Icons.access_time_rounded),
+                              SizedBox(
+                                width: 20,
+                              ),
+                              Text(
+                                'Working Hours',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          padding: const EdgeInsets.only(left: 60),
+                          child: Row(
+                            children: [
+                              const Text(
+                                'Today: ',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                document['openHour'] +
+                                    " - " +
+                                    document['closeHour'],
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 50,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 30),
+                          height: 50,
+                          width: MediaQuery.of(context).size.width,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.black, backgroundColor: Colors.indigo.withOpacity(0.9), elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(32.0),
+                              ),
+                            ),
+                            onPressed: () {
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) => BookingScreen(
+                              //       doctor: document['name'],
+                              //       key: null,
+                              //     ),
+                              //   ),
+                              // );
+                                                    // Navigator.pushNamed(context, '/BookingScreen');
+
+                            },
+                            child: const Text(
+                              'Book an Appointment',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 40,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
